@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Fields: uid, email, displayName, role (admin|child), logopedistId, createdAt
+    //
+    // Collection: exercises
+    // Fields: id, childId, logopedistId, title, instruction, type, modelAudioUrl, createdAt
+    //
+    // Collection: attempts
+    // Fields: id, exerciseId, childId, audioUrl, timestamp, feedback
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSimpleAdmin(uid) {
+      return uid != null && uid.matches('^simple_.*');
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && 
+        (get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin' ||
+         (request.auth.token.email == "jordache.genetics@gmail.com" && request.auth.token.email_verified == true));
+    }
+
+    function isMaster(uid) {
+      return uid == 'simple_logotina_full';
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      // Allow reading patients or simple admin profiles if unauthenticated (for logopedists)
+      // or if the user is the owner or an admin
+      allow read: if (request.auth == null) || isOwner(userId) || isAdmin();
+      
+      // Allow creating/updating if authenticated via Firebase or if it's a simple logopedist flow
+      // We allow update if unauthenticated to support the simple logopedist login
+      allow create, update: if (request.auth == null) || 
+                             isAuthenticated() || 
+                             isSimpleAdmin(userId) || 
+                             (request.resource.data != null && 'logopedistId' in request.resource.data && isSimpleAdmin(request.resource.data.logopedistId));
+    }
+
+    match /exercises/{exerciseId} {
+      allow read, write: if true; // Simplified for the "no password" logopedist flow
+    }
+
+    match /attempts/{attemptId} {
+      allow read, write: if true; // Simplified for the "no password" logopedist flow
+    }
+
+    match /reports/{reportId} {
+      allow read, write: if true; // Simplified for the "no password" logopedist flow
+    }
+  }
+}

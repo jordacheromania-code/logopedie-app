@@ -1,0 +1,82 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "Represents a user in the system (Logopedist or Child/Parent).",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "email": { "type": "string", "format": "email" },
+        "displayName": { "type": "string" },
+        "role": { "type": "string", "enum": ["admin", "child"] },
+        "createdAt": { "type": "string", "format": "date-time" },
+        "logopedistId": { "type": "string", "description": "For children, the UID of their logopedist." }
+      },
+      "required": ["uid", "email", "role"]
+    },
+    "Exercise": {
+      "title": "Exercise",
+      "description": "An exercise assigned to a child.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "childId": { "type": "string" },
+        "logopedistId": { "type": "string" },
+        "title": { "type": "string" },
+        "instruction": { "type": "string" },
+        "type": { "type": "string", "enum": ["sound", "word", "sentence"] },
+        "modelAudioUrl": { "type": "string", "description": "Base64 or URL of the correct pronunciation." },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["childId", "logopedistId", "title", "type"]
+    },
+    "Attempt": {
+      "title": "Attempt",
+      "description": "A recording made by a child for a specific exercise.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "exerciseId": { "type": "string" },
+        "childId": { "type": "string" },
+        "audioUrl": { "type": "string", "description": "Base64 or URL of the child's recording." },
+        "timestamp": { "type": "string", "format": "date-time" },
+        "feedback": { "type": "string" }
+      },
+      "required": ["exerciseId", "childId", "audioUrl", "timestamp"]
+    },
+    "Report": {
+      "title": "Report",
+      "description": "A medical report or evaluation (text or audio).",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "childId": { "type": "string" },
+        "logopedistId": { "type": "string" },
+        "title": { "type": "string" },
+        "content": { "type": "string", "description": "Text content or Base64 audio." },
+        "type": { "type": "string", "enum": ["initial_evaluation", "progress_report", "final_evaluation", "session_report"] },
+        "format": { "type": "string", "enum": ["text", "audio"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["childId", "logopedistId", "type", "format", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile data."
+    },
+    "/exercises/{exerciseId}": {
+      "schema": "Exercise",
+      "description": "Exercises created by logopedists."
+    },
+    "/attempts/{attemptId}": {
+      "schema": "Attempt",
+      "description": "Child recordings and attempts."
+    },
+    "/reports/{reportId}": {
+      "schema": "Report",
+      "description": "Medical reports and evaluations."
+    }
+  }
+}

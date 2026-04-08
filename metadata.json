@@ -1,0 +1,5 @@
+{
+  "name": "LOGOTINA",
+  "description": "Aplicație de logopedie pentru copii, ajutând la continuarea terapiei acasă prin exerciții personalizate și înregistrare audio.",
+  "requestFramePermissions": ["microphone"]
+}
